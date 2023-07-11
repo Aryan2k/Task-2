@@ -2,7 +2,6 @@ package com.example.task2
 
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
@@ -33,7 +32,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             Task2Theme {
-                LoadPermsStateful()
+                LoadPerms()
             }
         }
     }
@@ -41,82 +40,44 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun LoadPermsStateful(modifier: Modifier = Modifier) {
+fun LoadPerms(modifier: Modifier = Modifier) {
 
     val cameraPermissionState = rememberPermissionState(
         android.Manifest.permission.CAMERA
     )
 
-    LoadPermsStateless(
+    DrawUI(
         modifier,
         requestPermissions = {
-            Log.i("aryan", "hi")
             cameraPermissionState.launchPermissionRequest()
         },
         cameraPermissionState.status.isGranted,
         cameraPermissionState.status.shouldShowRationale
     )
-
 }
 
 @Composable
-fun LoadPermsStateless(
+fun DrawUI(
     modifier: Modifier,
     requestPermissions: () -> Unit,
     isCameraPermissionGranted: Boolean,
     shouldShowRationale: Boolean
-) {
-    Column(
-        modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    )
-    {
-        LoadSwitchStateful(requestPermissions = requestPermissions)
-        LoadTextStateful()
-    }
-
-    if (isCameraPermissionGranted) {
-        Log.i("aryan", "granted")
-        LoadSwitchStateful(requestPermissions = {}, changeCheckedStateValue = true, newValue = true)
-        LoadTextStateful(changeTextStateValue = true, newText = "Camera permission Granted")
-    } else {
-        LoadSwitchStateful(
-            requestPermissions = {},
-            changeCheckedStateValue = true,
-            newValue = false
-        )
-        //   Log.i("aryan", shouldShowRationale.toString())
-        if (shouldShowRationale) {
-            LoadTextStateful(
-                changeTextStateValue = true,
-                newText = "The camera is important for this app.\nPlease grant the permission."
-            )
-        } else {
-            LoadTextStateful(
-                changeTextStateValue = true,
-                newText = "Camera permission Denied"
-            )
-        }
-    }
-}
-
-@Composable
-fun LoadSwitchStateful(
-    requestPermissions: () -> Unit,
-    changeCheckedStateValue: Boolean = false,
-    newValue: Boolean = false
 ) {
 
     val checkedState = rememberSaveable {
         mutableStateOf(false)
     }
 
-    Log.i("aryan", "changeCheckedState: " + changeCheckedStateValue.toString())
-    if (changeCheckedStateValue) {
-        checkedState.value = newValue
-        Log.i("aryan", "checkedState: " + checkedState.value.toString())
-    } else {
+    val permissionStatusTextState = rememberSaveable {
+        mutableStateOf("")
+    }
+
+    Column(
+        modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    )
+    {
         LoadSwitchStateless(checkedState.value, onCheckedChange = { value ->
             if (value) {
                 requestPermissions()
@@ -124,6 +85,20 @@ fun LoadSwitchStateful(
                 checkedState.value = false
             }
         })
+        LoadTextStateless(permissionStatusTextState.value)
+    }
+
+    if (isCameraPermissionGranted) {
+        checkedState.value = true
+        permissionStatusTextState.value = "Camera permission Granted"
+    } else {
+        checkedState.value = false
+        if (shouldShowRationale) {
+            permissionStatusTextState.value =
+                "The camera is important for this app.\nPlease grant the permission."
+        } else {
+            permissionStatusTextState.value = "Camera permission Denied"
+        }
     }
 }
 
@@ -133,20 +108,6 @@ fun LoadSwitchStateless(checkedState: Boolean, onCheckedChange: (Boolean) -> Uni
         checked = checkedState,
         onCheckedChange = onCheckedChange
     )
-}
-
-@Composable
-fun LoadTextStateful(changeTextStateValue: Boolean = false, newText: String = "") {
-
-    val permissionStatusTextState = rememberSaveable {
-        mutableStateOf("")
-    }
-
-    if (changeTextStateValue) {
-        permissionStatusTextState.value = newText
-    } else {
-        LoadTextStateless(permissionStatusTextState.value)
-    }
 }
 
 @Composable
@@ -162,6 +123,6 @@ fun LoadTextStateless(text: String) {
 @Composable
 fun GreetingPreview() {
     Task2Theme {
-        LoadPermsStateful()
+        LoadPerms()
     }
 }
