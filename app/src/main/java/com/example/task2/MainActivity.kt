@@ -2,8 +2,10 @@ package com.example.task2
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -78,6 +80,10 @@ fun LoadPerms() {
                         "The camera is important for this app.\nPlease grant the permission."
                 } else {
                     permissionStatusTextState.value = "Camera permission Denied"
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                    val uri = Uri.fromParts("package", "com.example.task2", null)
+                    intent.data = uri
+                    startActivity(context, intent, null)
                 }
             }
         }
